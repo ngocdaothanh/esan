@@ -1,0 +1,2 @@
+esan is an Erlang HTML sanitizer in the white-list style. It uses xmerl to
+parse input HTML, thus the input HTML must be valid XML.
