@@ -1,2 +1,9 @@
-esan is an Erlang HTML sanitizer in the white-list style. It uses xmerl to
-parse input HTML, thus the input HTML must be valid XML.
+esan is an Erlang XHTML sanitizer in the white-list style. It uses xmerl to
+parse input HTML, thus the input HTML must be valid XHTML.
+
+Synopsis:
+
+DefaultValidTags = esan:default_valid_tags().
+DefaultValidAttributes = esan:default_valid_tags().
+{ok, Html} = esan:sanitize("This is<br />valid <b>XHTML</b>").
+{error, Reason} = esan:sanitize("This is<br>invalid <b>XHTML</b>").
