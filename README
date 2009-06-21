@@ -3,7 +3,10 @@ parse input HTML, thus the input HTML must be valid XHTML.
 
 Synopsis:
 
-DefaultValidTags = esan:default_valid_tags().
-DefaultValidAttributes = esan:default_valid_tags().
+DefaultAcceptableTags = esan:default_acceptable_tags().
+DefaultAcceptableAttributes = esan:default_acceptable_tags().
 {ok, Html} = esan:sanitize("This is<br />valid <b>XHTML</b>").
 {error, Reason} = esan:sanitize("This is<br>invalid <b>XHTML</b>").
+
+In common sense, an "acceptable" user input is an input that does not mess
+the UI design or introduce security hole.
