@@ -5,6 +5,7 @@
 -include_lib("xmerl/include/xmerl.hrl").
 
 -import(xmerl_xs, [xslapply/2]).
+-import(yaws_api, [htmlize/1]).
 
 default_acceptable_tags() ->
     [a, abbr, acronym, address, area, b, big, blockquote, br, caption, center,
@@ -19,10 +20,10 @@ default_acceptable_attributes() ->
     nowrap, prompt, rel, rev, rows, rowspan, rules, size, span, src, title,
     type, valign, vspace, width].
     
-sanitize(Html) ->
-    sanitize(Html, default_acceptable_tags(), default_acceptable_attributes()).
+san(Html) ->
+    san(Html, default_acceptable_tags(), default_acceptable_attributes()).
 
-sanitize(Html, AcceptableTags, AcceptableAttributes) ->
+san(Html, AcceptableTags, AcceptableAttributes) ->
     try
         put(acceptable_tags, AcceptableTags),
         put(acceptable_attributes, AcceptableAttributes),
@@ -31,16 +32,16 @@ sanitize(Html, AcceptableTags, AcceptableAttributes) ->
         WithRoot = "<root>" ++ Html ++ "</root>",
 
         {E, _Rest} = xmerl_scan:string(WithRoot),
-        Result = xslapply(fun sanitize_xml/1, E),
+        Result = xslapply(fun san_xml/1, E),
         {ok, Result}
     catch
         _ : Reason -> {error, Reason}
     end.
 
-sanitize_xml(E = #xmlElement{name = root}) ->
-    xslapply(fun sanitize_xml/1, E);
+san_xml(E = #xmlElement{name = root}) ->
+    xslapply(fun san_xml/1, E);
 
-sanitize_xml(E = #xmlElement{}) ->
+san_xml(E = #xmlElement{}) ->
     AcceptableTags = get(acceptable_tags),
     Name = E#xmlElement.name,
     case lists:member(Name, AcceptableTags) of
@@ -48,26 +49,25 @@ sanitize_xml(E = #xmlElement{}) ->
             case E#xmlElement.content of
                 [] ->
                     case E#xmlElement.attributes of
-                        []         -> ["<", atom_to_list(Name),                                       " />"];
-                        Attributes -> ["<", atom_to_list(Name), " ", sanitize_attributes(Attributes), " />"]
+                        []         -> ["<", atom_to_list(Name),                                  " />"];
+                        Attributes -> ["<", atom_to_list(Name), " ", san_attributes(Attributes), " />"]
                     end;
 
                 _ ->
                     OpenTag = case E#xmlElement.attributes of
-                        []         -> ["<", atom_to_list(Name),                                       ">"];
-                        Attributes -> ["<", atom_to_list(Name), " ", sanitize_attributes(Attributes), ">"]
+                        []         -> ["<", atom_to_list(Name),                                  ">"];
+                        Attributes -> ["<", atom_to_list(Name), " ", san_attributes(Attributes), ">"]
                     end,
                     CloseTag = ["</", atom_to_list(Name), ">"],
-                    [OpenTag, xslapply(fun sanitize_xml/1, E), CloseTag]
+                    [OpenTag, xslapply(fun san_xml/1, E), CloseTag]
             end;
 
         false -> ""
     end;
 
-sanitize_xml(T = #xmlText{}) ->
-    T#xmlText.value.
+san_xml(T = #xmlText{}) -> htmlize(T#xmlText.value).
 
-sanitize_attributes(Attributes) ->
+san_attributes(Attributes) ->
     AcceptableAttributes = get(acceptable_attributes),
     Strings = lists:foldr(
         fun(A, Acc) ->
@@ -75,7 +75,7 @@ sanitize_attributes(Attributes) ->
             case lists:member(Name, AcceptableAttributes) of
                 true ->
                     Value = A#xmlAttribute.value,
-                    [atom_to_list(Name) ++ "=\"" ++ Value ++ "\"" | Acc];
+                    [atom_to_list(Name) ++ "=\"" ++ htmlize(Value) ++ "\"" | Acc];
 
                 false ->
                     Acc

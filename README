@@ -1,12 +1,20 @@
-esan is an Erlang XHTML sanitizer in the white-list style. It uses xmerl to
+Esan is an Erlang XHTML sanitizer in the white-list style. It uses xmerl to
 parse input HTML, thus the input HTML must be valid XHTML.
 
 Synopsis:
 
 DefaultAcceptableTags = esan:default_acceptable_tags().
+
 DefaultAcceptableAttributes = esan:default_acceptable_tags().
+
 {ok, Html} = esan:sanitize("This is<br />valid <b>XHTML</b>").
+
 {error, Reason} = esan:sanitize("This is<br>invalid <b>XHTML</b>").
 
 In common sense, an "acceptable" user input is an input that does not mess
 the UI design or introduce security hole.
+
+== Dependency
+
+Yaws' yaws_api:htmlize/1 is used to escape attributes and text values. You need
+to install Yaws to Erlang's lib directory so that Esan can use.
