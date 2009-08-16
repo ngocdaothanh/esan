@@ -33,7 +33,8 @@ san(Html, AcceptableTags, AcceptableAttributes) ->
 
         {E, _Rest} = xmerl_scan:string(WithRoot),
         Result = xslapply(fun san_xml/1, E),
-        {ok, Result}
+        Result2 = binary_to_list(unicode:characters_to_binary(Result)),
+        {ok, Result2}
     catch
         _ : Reason -> {error, Reason}
     end.
