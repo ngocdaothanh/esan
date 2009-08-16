@@ -33,7 +33,7 @@ san(Html, AcceptableTags, AcceptableAttributes) ->
 
         {E, _Rest} = xmerl_scan:string(WithRoot),
         Result = xslapply(fun san_xml/1, E),
-        Result2 = binary_to_list(unicode:characters_to_binary(Result)),
+        Result2 = binary_to_list(unicode:characters_to_binary(Result)),  % Must be plain list of 0-255 for ehtml_expand to work
         {ok, Result2}
     catch
         _ : Reason -> {error, Reason}
